@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.8.0"
+    kotlin("jvm") version "1.8.20"
     application
 }
 
@@ -12,12 +12,14 @@ repositories {
     maven("https://repo.kotlin.link")
 }
 
+val kmathVersion = "0.3.0"
+
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("space.kscience:kmath-core:0.3.0")
-    implementation("space.kscience:kmath-geometry:0.3.0")
-    implementation("space.kscience:kmath-complex:0.3.0")
-    implementation("space.kscience:kmath-stat:0.3.0")
+    implementation("space.kscience:kmath-core:$kmathVersion")
+    implementation("space.kscience:kmath-geometry:$kmathVersion")
+    implementation("space.kscience:kmath-complex:$kmathVersion")
+    implementation("space.kscience:kmath-stat:$kmathVersion")
 }
 
 tasks.test {
@@ -25,7 +27,21 @@ tasks.test {
 }
 
 kotlin {
-    jvmToolchain(8)
+    target.compilations.all {
+        kotlinOptions {
+            freeCompilerArgs += "-jvm-target 11"
+            jvmTarget = "11"
+        }
+    }
+    sourceSets.all {
+        languageSettings {
+
+        }
+    }
+}
+
+java {
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 application {
