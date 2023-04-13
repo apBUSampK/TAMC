@@ -3,8 +3,9 @@ package mcinterference
 import mcinterference.ModellingSettings.wavelength
 import space.kscience.kmath.complex.Complex
 import space.kscience.kmath.complex.ComplexField
+import space.kscience.kmath.geometry.DoubleVector3D
 import space.kscience.kmath.geometry.Euclidean3DSpace
-import space.kscience.kmath.geometry.Vector3D
+import space.kscience.kmath.operations.invoke
 import kotlin.math.PI
 
 /**
@@ -22,9 +23,9 @@ fun Complex.rotate(alpha: Double) : Complex  = ComplexField.run{
  *
  * @property[wavelength] Wavelength of the source
  */
-//wavelength is used everywhere and it certainly isn't a property of, for example, an SLM. Polluting Wave with it, when it is the same for all the waves, felt strange too.
+//wavelength is used everywhere, and it certainly isn't a property of, for example, an SLM. Polluting Wave with it, when it is the same for all the waves, felt strange too.
 object ModellingSettings {
-    var wavelength : Double = .0
+    var wavelength : Double = 720.0
 }
 
 /**
@@ -34,7 +35,7 @@ object ModellingSettings {
  * @property[stAmplitude] Initial amplitude of the wave
  */
 class Wave (
-    private val coordinate: Vector3D,
+    private val coordinate: DoubleVector3D,
     private val stAmplitude: Complex
 ) {
     /**
@@ -43,7 +44,7 @@ class Wave (
      * @property[target] Coordinate of the target point
      * @return Amplitude at the point
      */
-    fun amplitude(target: Vector3D) : Complex = Euclidean3DSpace.run{
+    fun amplitude(target: DoubleVector3D) : Complex = Euclidean3DSpace {
         val distance: Double = (target - coordinate).norm()
         ComplexField.run{stAmplitude / distance}.rotate(2 * PI * distance / ModellingSettings.wavelength)
     }
@@ -52,10 +53,10 @@ class Wave (
      * Calculate wave's amplitude multiplied by an inclination factor
      *
      * @property[target] Coordinate of the target point
-     * @return Amplitude at the point times inclinationn factor
+     * @return Amplitude at the point times inclination factor
      */
-    fun fresnel(target: Vector3D): Complex = ComplexField.run{
-         -i / ModellingSettings.wavelength * amplitude(target) * (1 + Euclidean3DSpace.run {
+    fun fresnel(target: DoubleVector3D): Complex = ComplexField {
+         -i / ModellingSettings.wavelength * amplitude(target) * (1 + Euclidean3DSpace {
              val delta = (target - coordinate)
-             delta.dot(Vector3D(.0, .0, 1.0)) / delta.norm() }) / 2}
+             delta.dot(vector(.0, .0, 1.0)) / delta.norm() }) / 2}
 }

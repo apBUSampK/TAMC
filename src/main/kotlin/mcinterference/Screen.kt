@@ -1,6 +1,7 @@
 package mcinterference
 
-import space.kscience.kmath.geometry.Vector3D
+import space.kscience.kmath.geometry.DoubleVector3D
+import space.kscience.kmath.geometry.Euclidean3DSpace
 
 /**
  * A class for determining a grid on the screen for further rendering
@@ -14,7 +15,7 @@ import space.kscience.kmath.geometry.Vector3D
  */
 class Screen (
     private val source: Emitter,
-    private val position: Vector3D,
+    private val position: DoubleVector3D,
     private val dx: Double,
     private val dy: Double,
     private val nx: Int,
@@ -28,7 +29,7 @@ class Screen (
      */
     suspend fun draw(accuracy: Int) : List<List<Double>> =  List(nx) { rnum: Int ->
         List(ny) {
-            fresnelIntegral(source as ContinuousEmitter, Vector3D(position.x + rnum * dx, position.y + it * dy, position.z), accuracy).re
+            fresnelIntegral(source as ContinuousEmitter, Euclidean3DSpace.vector(position.x + rnum * dx, position.y + it * dy, position.z), accuracy).re
         }
     }
 }
