@@ -1,6 +1,6 @@
 package mcinterference
 
-import space.kscience.kmath.geometry.Vector2D
+import space.kscience.kmath.geometry.DoubleVector2D
 
 /**
  * Emitter interface, anything that is considered a light source
@@ -19,7 +19,7 @@ sealed interface Emitter {
  * Continuous emitter, any emitter with geometrical size
  */
 interface ContinuousEmitter : Emitter {
-    val sampler: MeasuredSampler<Vector2D>
+    val sampler: MeasuredSampler<DoubleVector2D>
     val cache: List<Wave>?
     val cachedAccuracy: Int
 

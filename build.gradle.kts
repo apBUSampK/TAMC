@@ -12,7 +12,7 @@ repositories {
     maven("https://repo.kotlin.link")
 }
 
-val kmathVersion = "0.3.0"
+val kmathVersion = "0.3.1-dev-RC"
 
 dependencies {
     testImplementation(kotlin("test"))

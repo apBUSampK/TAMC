@@ -3,9 +3,9 @@ package mcinterference
 import space.kscience.kmath.chains.Chain
 import space.kscience.kmath.complex.Complex
 import space.kscience.kmath.complex.ComplexField
-import space.kscience.kmath.geometry.Vector2D
-import space.kscience.kmath.geometry.Vector3D
-import space.kscience.kmath.stat.RandomGenerator
+import space.kscience.kmath.geometry.DoubleVector2D
+import space.kscience.kmath.geometry.Euclidean3DSpace
+import space.kscience.kmath.random.RandomGenerator
 
 /**
  * A class representing a SLM
@@ -19,8 +19,8 @@ import space.kscience.kmath.stat.RandomGenerator
 class SLM(
     private val source: Emitter,
     private val distance: Double,
-    override val sampler: MeasuredSampler<Vector2D>,
-    val modulation: (Vector2D) -> Complex,
+    override val sampler: MeasuredSampler<DoubleVector2D>,
+    val modulation: (DoubleVector2D) -> Complex,
     private val generator: RandomGenerator
 ) : ContinuousEmitter {
     override var cache: MutableList<Wave>? = null
@@ -28,12 +28,12 @@ class SLM(
     override suspend fun compute(accuracy: Int) {
         if (cache == null)
             cache = mutableListOf()
-        val newPoints: Chain<Vector2D> = sampler.sample(generator)
+        val newPoints: Chain<DoubleVector2D> = sampler.sample(generator)
         for (i in (0..accuracy - cachedAccuracy)) {
             val point = newPoints.next()
-            val position = Vector3D(point.x, point.y, distance)
+            val position = Euclidean3DSpace.vector(point.x, point.y, distance)
             cache?.add(Wave(
-                Vector3D(
+                Euclidean3DSpace.vector(
                     point.x,
                     point.y,
                     0.0),
