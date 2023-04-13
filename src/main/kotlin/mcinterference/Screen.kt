@@ -27,9 +27,9 @@ class Screen (
      * @param[accuracy] Desired number of calculated points for MC integration
      * @return Matrix of amplitudes
      */
-    suspend fun draw(accuracy: Int) : List<List<Double>> =  List(nx) { rnum: Int ->
+    fun draw(accuracy: Int, context: FresnelIntegration) : List<List<Double>> =  List(nx) { rnum: Int ->
         List(ny) {
-            fresnelIntegral(source as ContinuousEmitter, Euclidean3DSpace.vector(position.x + rnum * dx, position.y + it * dy, position.z), accuracy).re
+            context.fresnelIntegral(source, Euclidean3DSpace.vector(position.x + rnum * dx, position.y + it * dy, position.z), accuracy).re
         }
     }
 }

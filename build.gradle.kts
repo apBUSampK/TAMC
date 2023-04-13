@@ -29,7 +29,7 @@ tasks.test {
 kotlin {
     target.compilations.all {
         kotlinOptions {
-            freeCompilerArgs += "-jvm-target 11"
+            //freeCompilerArgs += "-jvm-target 11"
             jvmTarget = "11"
         }
     }

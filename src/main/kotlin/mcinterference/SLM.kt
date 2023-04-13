@@ -1,10 +1,12 @@
 package mcinterference
 
+import kotlinx.coroutines.runBlocking
 import space.kscience.kmath.chains.Chain
 import space.kscience.kmath.complex.Complex
 import space.kscience.kmath.complex.ComplexField
 import space.kscience.kmath.geometry.DoubleVector2D
 import space.kscience.kmath.geometry.Euclidean3DSpace
+import space.kscience.kmath.operations.invoke
 import space.kscience.kmath.random.RandomGenerator
 
 /**
@@ -20,25 +22,27 @@ class SLM(
     private val source: Emitter,
     private val distance: Double,
     override val sampler: MeasuredSampler<DoubleVector2D>,
-    val modulation: (DoubleVector2D) -> Complex,
+    private val modulation: (DoubleVector2D) -> Complex,
     private val generator: RandomGenerator
 ) : ContinuousEmitter {
-    override var cache: MutableList<Wave>? = null
-    override var cachedAccuracy = 0
-    override suspend fun compute(accuracy: Int) {
-        if (cache == null)
-            cache = mutableListOf()
+    private var cache: MutableList<Wave> = mutableListOf()
+
+    fun compute(accuracy: Int, context: FresnelIntegration) {
         val newPoints: Chain<DoubleVector2D> = sampler.sample(generator)
-        for (i in (0..accuracy - cachedAccuracy)) {
-            val point = newPoints.next()
+        for (i in (0..accuracy - cache.size)) {
+            val point = runBlocking { newPoints.next() }                        //suppress asynchronous behaviour
             val position = Euclidean3DSpace.vector(point.x, point.y, distance)
-            cache?.add(Wave(
+            cache.add(Wave(
                 Euclidean3DSpace.vector(
                     point.x,
                     point.y,
                     0.0),
-                ComplexField.run{ modulation(point) * fresnelIntegral(source as ContinuousEmitter, position, accuracy) }))// TODO(type check for PointEmitter)
+                ComplexField { modulation(point) * context.fresnelIntegral(source , position, accuracy) }))
         }
-        cachedAccuracy = accuracy
+    }
+    override fun emit(accuracy: Int, context: FresnelIntegration): List<Wave> {
+        if (cache.size < accuracy)
+            compute(accuracy, context)
+        return cache.subList(0, accuracy)
     }
 }

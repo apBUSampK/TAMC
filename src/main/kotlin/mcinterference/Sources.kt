@@ -1,5 +1,6 @@
 package mcinterference
 
+import kotlinx.coroutines.runBlocking
 import space.kscience.kmath.chains.Chain
 import space.kscience.kmath.complex.Complex
 import space.kscience.kmath.geometry.DoubleVector2D
@@ -14,26 +15,28 @@ import space.kscience.kmath.random.RandomGenerator
  * @property[generator] A seeded generator for the [sampler]
  */
 class ContinuousSource (
-    val amplitude: (DoubleVector2D) -> Complex,
+    private val amplitude: (DoubleVector2D) -> Complex,
     override val sampler: MeasuredSampler<DoubleVector2D>,
-    val generator: RandomGenerator
+    private val generator: RandomGenerator
 ): ContinuousEmitter {
-    override var cache: MutableList<Wave>? = null
-    override var cachedAccuracy = 0
+    private var cache: MutableList<Wave> = mutableListOf()
 
-    override suspend fun compute(accuracy: Int) {
-        if (cache == null)
-            cache = mutableListOf()
+    fun compute(accuracy: Int) {
         val newPoints: Chain<DoubleVector2D> = sampler.sample(generator)
-        for (i in (0..accuracy - cachedAccuracy)) {
-            val point = newPoints.next()
-            cache?.add(Wave(
+        for (i in (0..accuracy - cache.size)) {
+            val point = runBlocking {  newPoints.next() }                  //suppress asynchronous behaviour
+            cache.add(Wave(
                 Euclidean3DSpace.vector(
                     point.x,
                     point.y,
                     0.0),
                 amplitude(point)))
         }
-        cachedAccuracy = accuracy
+    }
+
+    override fun emit(accuracy: Int, context: FresnelIntegration): List<Wave> {
+        if (cache.size < accuracy)
+            compute(accuracy)               //context is redundant now but can be expanded in future
+        return cache.subList(0, accuracy)
     }
 }
