@@ -13,6 +13,7 @@ repositories {
 }
 
 val kmathVersion = "0.3.1-dev-RC"
+val letsPlotVersion = "4.3.0"
 
 dependencies {
     testImplementation(kotlin("test"))

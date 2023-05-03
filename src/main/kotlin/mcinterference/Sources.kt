@@ -36,7 +36,17 @@ class ContinuousSource (
 
     override fun emit(accuracy: Int, context: FresnelIntegration): List<Wave> {
         if (cache.size < accuracy)
-            compute(accuracy)               //context is redundant now but can be expanded in future
+            compute(accuracy)                           //context is redundant now but can be expanded in future
         return cache.subList(0, accuracy)
     }
 }
+
+
+/**
+ * A point source
+ *
+ * @property[wave] A wave object, representing the point source
+ */
+class Source(
+    override val wave: Wave
+): PointEmitter
