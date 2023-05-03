@@ -1,5 +1,8 @@
 package mcinterference
 
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.reduce
+import kotlinx.coroutines.flow.take
 import space.kscience.kmath.complex.Complex
 import space.kscience.kmath.complex.ComplexField
 import space.kscience.kmath.geometry.DoubleVector3D
@@ -25,7 +28,8 @@ data class Wave (
  * @property[wavelength] Wavelength of waves used in calculations
  */
 class FresnelIntegration (
-    private val wavelength: Double = 720.0
+    private val wavelength: Double = 720.0,
+    val maxCache: Int = 1_000_000_000
 ) {
 
     /**
@@ -70,11 +74,14 @@ class FresnelIntegration (
      * @param[accuracy] Desired number of points for MC integration (redundant for PointEmitter source)
      * @return Complex amplitude of the E field at [position]
      */
-    fun fresnelIntegral(source: Emitter, position: DoubleVector3D, accuracy: Int = 1) : Complex = when(source){
+    suspend fun fresnelIntegral(source: Emitter, position: DoubleVector3D, accuracy: Int = 1) : Complex = when(source){
         is ContinuousEmitter -> ComplexField {
-            -i / wavelength * source.sampler.measure / accuracy * source.emit(accuracy, this@FresnelIntegration)
-                .map { it.fresnel(position) }
-                .reduce{ a, b -> a + b }
+            source.request(accuracy)
+            -i / wavelength * source.sampler.measure / accuracy *
+                    source.waves
+                        .take(accuracy)
+                        .map { it.fresnel(position) }
+                        .reduce{ a, b -> a + b }
         }
         is PointEmitter -> ComplexField {
             source.wave.amplitude(position)

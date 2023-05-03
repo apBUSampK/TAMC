@@ -1,5 +1,6 @@
 package mcinterference
 
+import space.kscience.kmath.complex.ComplexField
 import space.kscience.kmath.geometry.DoubleVector3D
 import space.kscience.kmath.geometry.Euclidean3DSpace
 
@@ -27,9 +28,17 @@ class Screen (
      * @param[accuracy] Desired number of calculated points for MC integration
      * @return Matrix of amplitudes
      */
-    fun draw(accuracy: Int, context: FresnelIntegration) : List<List<Double>> =  List(nx) { rnum: Int ->
-        List(ny) {
-            context.fresnelIntegral(source, Euclidean3DSpace.vector(position.x + rnum * dx, position.y + it * dy, position.z), accuracy).re
+    suspend fun draw(accuracy: Int, context: FresnelIntegration): List<List<Double>> = ComplexField.run {
+        List(nx) { rnum: Int ->
+            List(ny) {
+                power(
+                    norm(context.fresnelIntegral(
+                        source,
+                        Euclidean3DSpace.vector(position.x + rnum * dx, position.y + it * dy, position.z),
+                        accuracy
+                    )), 2
+                ).re
+            }
         }
     }
 }

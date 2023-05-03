@@ -1,5 +1,6 @@
 package mcinterference
 
+import kotlinx.coroutines.flow.SharedFlow
 import space.kscience.kmath.geometry.DoubleVector2D
 
 /**
@@ -13,6 +14,7 @@ sealed interface Emitter
 interface ContinuousEmitter : Emitter {
 
     val sampler: MeasuredSampler<DoubleVector2D>
+    val waves: SharedFlow<Wave>
 
     /**
      * Emit function: generate a list of spherical waves, located at random points of the emitter.
@@ -20,7 +22,7 @@ interface ContinuousEmitter : Emitter {
      * @param[accuracy] Number of generated points
      * @return List of [accuracy] spherical waves
      */
-    fun emit(accuracy: Int, context:FresnelIntegration): List<Wave>
+    suspend fun request(accuracy: Int)
 }
 
 /**

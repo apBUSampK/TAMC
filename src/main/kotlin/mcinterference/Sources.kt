@@ -1,7 +1,8 @@
 package mcinterference
 
-import kotlinx.coroutines.runBlocking
-import space.kscience.kmath.chains.Chain
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import space.kscience.kmath.complex.Complex
 import space.kscience.kmath.geometry.DoubleVector2D
 import space.kscience.kmath.geometry.Euclidean3DSpace
@@ -12,32 +13,31 @@ import space.kscience.kmath.random.RandomGenerator
  *
  * @property[amplitude] A function for determining the amplitude at a given point
  * @property[sampler] A sampler for generating new points. Should be chosen accordingly to [amplitude]
- * @property[generator] A seeded generator for the [sampler]
+ * @param[generator] A seeded generator for the [sampler]
  */
 class ContinuousSource (
     private val amplitude: (DoubleVector2D) -> Complex,
     override val sampler: MeasuredSampler<DoubleVector2D>,
-    private val generator: RandomGenerator
+    generator: RandomGenerator,
+    context: FresnelIntegration
 ): ContinuousEmitter {
-    private var cache: MutableList<Wave> = mutableListOf()
+    private val _waves = MutableSharedFlow<Wave>(context.maxCache, onBufferOverflow = BufferOverflow.DROP_LATEST)
+    override val waves = _waves.asSharedFlow()
+    private val newPoints = sampler.sample(generator)
+    /**
+     * A function for creating a Wave at a given point of the source
+     * @param[point] A point on the source
+     */
+    fun getWave(point: DoubleVector2D): Wave =
+        Wave(Euclidean3DSpace.vector(
+                point.x,
+                point.y,
+                0),
+            amplitude(point))
 
-    fun compute(accuracy: Int) {
-        val newPoints: Chain<DoubleVector2D> = sampler.sample(generator)
-        for (i in (0..accuracy - cache.size)) {
-            val point = runBlocking {  newPoints.next() }                  //suppress asynchronous behaviour
-            cache.add(Wave(
-                Euclidean3DSpace.vector(
-                    point.x,
-                    point.y,
-                    0.0),
-                amplitude(point)))
-        }
-    }
-
-    override fun emit(accuracy: Int, context: FresnelIntegration): List<Wave> {
-        if (cache.size < accuracy)
-            compute(accuracy)                           //context is redundant now but can be expanded in future
-        return cache.subList(0, accuracy)
+    override suspend fun request(accuracy: Int) {
+        for (i in 0 until accuracy - _waves.replayCache.size)
+            _waves.emit(getWave(newPoints.next()))
     }
 }
 

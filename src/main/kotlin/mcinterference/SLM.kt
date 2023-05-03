@@ -1,7 +1,7 @@
 package mcinterference
 
-import kotlinx.coroutines.runBlocking
-import space.kscience.kmath.chains.Chain
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import space.kscience.kmath.complex.Complex
 import space.kscience.kmath.complex.ComplexField
 import space.kscience.kmath.geometry.DoubleVector2D
@@ -16,33 +16,29 @@ import space.kscience.kmath.random.RandomGenerator
  * @property[distance] Distance to the source
  * @property[sampler] A sampler for generating new points. Should be chosen accordingly to [modulation]
  * @property[modulation] Function applied to incoming light
- * @property[generator] A seeded generator for the [sampler]
+ * @param[generator] A seeded generator for the [sampler]
  */
 class SLM(
     private val source: Emitter,
     private val distance: Double,
     override val sampler: MeasuredSampler<DoubleVector2D>,
     private val modulation: (DoubleVector2D) -> Complex,
-    private val generator: RandomGenerator
+    generator: RandomGenerator,
+    val context: FresnelIntegration
 ) : ContinuousEmitter {
-    private var cache: MutableList<Wave> = mutableListOf()
+    private val _waves = MutableSharedFlow<Wave>(replay=context.maxCache)
+    override val waves = _waves.asSharedFlow()
+    private val newPoints = sampler.sample(generator)
 
-    fun compute(accuracy: Int, context: FresnelIntegration) {
-        val newPoints: Chain<DoubleVector2D> = sampler.sample(generator)
-        for (i in (0..accuracy - cache.size)) {
-            val point = runBlocking { newPoints.next() }                        //suppress asynchronous behaviour
-            val position = Euclidean3DSpace.vector(point.x, point.y, distance)
-            cache.add(Wave(
-                Euclidean3DSpace.vector(
-                    point.x,
-                    point.y,
-                    0.0),
-                ComplexField { modulation(point) * context.fresnelIntegral(source , position, accuracy) }))
-        }
-    }
-    override fun emit(accuracy: Int, context: FresnelIntegration): List<Wave> {
-        if (cache.size < accuracy)
-            compute(accuracy, context)
-        return cache.subList(0, accuracy)
+    suspend fun getWave(point: DoubleVector2D, accuracy: Int): Wave =
+        Wave(Euclidean3DSpace.vector(
+                point.x,
+                point.y,
+                0.0),
+            ComplexField { modulation(point) * context.fresnelIntegral(source , Euclidean3DSpace.vector(point.x, point.y, distance), accuracy) })
+
+    override suspend fun request(accuracy: Int) {
+        for (i in (0 until accuracy - _waves.replayCache.size))
+            _waves.emit(getWave(newPoints.next(), accuracy))
     }
 }
