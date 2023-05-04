@@ -25,8 +25,9 @@ class ContinuousSource (
     override val waves = _waves.asSharedFlow()
     private val newPoints = sampler.sample(generator)
     /**
-     * A function for creating a Wave at a given point of the source
-     * @param[point] A point on the source
+     * Calculate wave amplitude at a [point] of the SLM
+     * @property[point] Location of the emittance point
+     * @return Wave object, representing the wave, emitted by the point
      */
     fun getWave(point: DoubleVector2D): Wave =
         Wave(Euclidean3DSpace.vector(
@@ -35,6 +36,10 @@ class ContinuousSource (
                 0),
             amplitude(point))
 
+    /**
+     * Request [waves] to generate points to store in buffer. Doesn't generate new points if there are enough
+     * @param[accuracy] requested number of points
+     */
     override suspend fun request(accuracy: Int) {
         for (i in 0 until accuracy - _waves.replayCache.size)
             _waves.emit(getWave(newPoints.next()))

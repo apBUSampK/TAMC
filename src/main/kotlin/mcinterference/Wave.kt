@@ -26,6 +26,7 @@ data class Wave (
  * Context class, encapsulating all arithmetic needed for calculations
  *
  * @property[wavelength] Wavelength of waves used in calculations
+ * @property[maxCache] maximum cache (number of points) for each continuous object
  */
 class FresnelIntegration (
     private val wavelength: Double = 720.0,

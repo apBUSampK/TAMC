@@ -20,6 +20,7 @@ fun main(args: Array<String>) {
         val data = runBlocking(Dispatchers.Default) {
             screen.draw(10000, context)
         }
+        //image processing
         val pixels = data.flatten()
         val norm = pixels.max()
         print(norm)
