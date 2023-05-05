@@ -77,6 +77,7 @@ class FresnelIntegration (
      */
     suspend fun fresnelIntegral(source: Emitter, position: DoubleVector3D, accuracy: Int = 1) : Complex = when(source){
         is ContinuousEmitter -> ComplexField {
+            source.request(accuracy)
             -i / wavelength * source.sampler.measure / accuracy *
                     source.waves
                         .take(accuracy)

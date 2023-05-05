@@ -29,12 +29,12 @@ class Screen (
      * @return Matrix of amplitudes
      */
     suspend fun draw(accuracy: Int, context: FresnelIntegration): List<List<Double>> = ComplexField.run {
-        List(nx) { rnum: Int ->
+        List(nx) { rNum: Int ->
             List(ny) {
                 power(
                     norm(context.fresnelIntegral(
                         source,
-                        Euclidean3DSpace.vector(position.x + rnum * dx, position.y + it * dy, position.z),
+                        Euclidean3DSpace.vector(position.x + rNum * dx, position.y + it * dy, position.z),
                         accuracy
                     )), 2
                 ).re

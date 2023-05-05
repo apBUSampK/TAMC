@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
         val slm = SLM(source, 10.0, RectangleSampler(.00002, .00002), { Complex(1) }, RandomGenerator.default(1), context)
         val screen = Screen(slm, Euclidean3DSpace.vector(-.5, -.5, 5), .01, .01, width, height)
         val data = runBlocking(Dispatchers.Default) {
-            screen.draw(10000, context)
+            screen.draw(2, context)
         }
         //image processing
         val pixels = data.flatten()

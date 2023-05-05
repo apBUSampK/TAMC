@@ -18,7 +18,7 @@ import space.kscience.kmath.random.RandomGenerator
  * @property[modulation] Function applied to incoming light
  * @param[generator] A seeded generator for the [sampler]
  * @property[context] A FresnelIntegration context of integration task
- * @property[waves] A hot stream of samples for integratiion
+ * @property[waves] A hot stream of samples for integration
  */
 class SLM(
     private val source: Emitter,
@@ -38,7 +38,7 @@ class SLM(
      * @property[accuracy] Accuracy for calculation from previous layer
      * @return Wave object, representing the wave, emitted by the point
      */
-    private suspend fun getWave(point: DoubleVector2D, accuracy: Int): Wave {
+    suspend fun getWave(point: DoubleVector2D, accuracy: Int): Wave {
         when(source) {
             is ContinuousEmitter -> source.request(accuracy)
             else -> Unit

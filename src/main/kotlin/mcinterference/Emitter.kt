@@ -10,6 +10,9 @@ sealed interface Emitter
 
 /**
  * Continuous emitter, any emitter with geometrical size
+ *
+ * @property[sampler] A sampler with attached measure for sampling points
+ * @property[waves] A hot flow of emitted waves (cache)
  */
 interface ContinuousEmitter : Emitter {
 
