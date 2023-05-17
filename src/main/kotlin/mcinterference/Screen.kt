@@ -23,12 +23,16 @@ class Screen (
     private val ny: Int
 ) {
     /**
-     * A function for calculating amplitude at every point of the screen
+     * A function for calculating amplitude at every point of the screene
      *
      * @param[accuracy] Desired number of calculated points for MC integration
      * @return Matrix of amplitudes
      */
     suspend fun draw(accuracy: Int, context: Integration): List<List<Double>> = ComplexField.run {
+        when(source) {
+            is ContinuousEmitter -> source.request(accuracy)
+            is PointEmitter -> Unit
+        }
         List(nx) { rNum: Int ->
             List(ny) {
                 power(
