@@ -10,12 +10,12 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Interface with [measure] of the sampling area for integration purposes
+ * Interface with [density] of the sampling area for integration purposes
  *
- * @property[measure] Measure of the area the points are sampled from
+ * @property[density] Measure of the area the points are sampled from
  */
 interface MeasuredSampler<out T: Any>: Sampler<T> {
-    val measure: Double
+    val density: Double
 }
 
 /**
@@ -32,7 +32,7 @@ class RectangleSampler(
     private val offset: DoubleVector2D = Euclidean2DSpace.vector(.0, .0),
     private val rotation: Double = .0
 ) : MeasuredSampler<DoubleVector2D> {
-    override val measure: Double
+    override val density: Double
         get() = dx * dy
 
     override fun sample(generator: RandomGenerator): Chain<DoubleVector2D> {

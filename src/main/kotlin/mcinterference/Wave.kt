@@ -1,5 +1,8 @@
 package mcinterference
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.reduce
 import kotlinx.coroutines.flow.take
@@ -8,6 +11,7 @@ import space.kscience.kmath.complex.ComplexField
 import space.kscience.kmath.geometry.DoubleVector3D
 import space.kscience.kmath.geometry.Euclidean3DSpace
 import space.kscience.kmath.operations.invoke
+import kotlin.coroutines.coroutineContext
 import kotlin.math.PI
 
 
@@ -30,9 +34,12 @@ data class Wave (
  */
 class Integration (
     private val wavelength: Double = 720E-9,
-    val maxCache: Int = 1_000_000_000
+    val maxCache: Int = 1_000_000_000,
+    private val threads: Int = 1
 ) {
-
+    init{
+        if (threads < 1) throw IllegalArgumentException("Can't have less then one thread!")
+    }
     /**
      * A function to rotate the complex number
      *
@@ -64,11 +71,18 @@ class Integration (
      */
     suspend fun integral(source: Emitter, position: DoubleVector3D, accuracy: Int = 1) : Complex = when(source){
         is ContinuousEmitter -> ComplexField {
-            -i / wavelength * source.sampler.measure / accuracy *
-                    source.waves
-                        .take(accuracy)
-                        .map { it.amplitude(position) }
-                        .reduce{ a, b -> a + b }
+            val batchSize = accuracy / threads
+            val lastBatch = batchSize + accuracy - batchSize * threads
+            val flows = List(threads) { thread ->
+                        source.waves
+                            .take(if(thread != threads - 1) batchSize else lastBatch)
+                            .map { it.amplitude(position) / source.sampler.density}
+            }
+            val data = flows.map {
+                    CoroutineScope(coroutineContext).async {
+                        it.reduce { a, b -> a + b } }
+            }
+            return data.awaitAll().reduce{ a, b -> a + b } / accuracy
         }
         is PointEmitter -> ComplexField {
             source.wave.amplitude(position)
