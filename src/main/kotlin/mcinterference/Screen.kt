@@ -28,11 +28,11 @@ class Screen (
      * @param[accuracy] Desired number of calculated points for MC integration
      * @return Matrix of amplitudes
      */
-    suspend fun draw(accuracy: Int, context: FresnelIntegration): List<List<Double>> = ComplexField.run {
+    suspend fun draw(accuracy: Int, context: Integration): List<List<Double>> = ComplexField.run {
         List(nx) { rNum: Int ->
             List(ny) {
                 power(
-                    norm(context.fresnelIntegral(
+                    norm(context.integral(
                         source,
                         Euclidean3DSpace.vector(position.x + rNum * dx, position.y + it * dy, position.z),
                         accuracy

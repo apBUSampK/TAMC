@@ -26,7 +26,7 @@ class SLM(
     override val sampler: MeasuredSampler<DoubleVector2D>,
     private val modulation: (DoubleVector2D) -> Complex,
     generator: RandomGenerator,
-    val context: FresnelIntegration
+    val context: Integration
 ) : ContinuousEmitter {
     private val _waves = MutableSharedFlow<Wave>(replay=context.maxCache)
     override val waves = _waves.asSharedFlow()
@@ -49,7 +49,7 @@ class SLM(
             point.y,
             0.0
         ), ComplexField {
-                modulation(point) * context.fresnelIntegral(
+                modulation(point) * context.integral(
                     source,
                     Euclidean3DSpace.vector(point.x, point.y, distance),
                     accuracy

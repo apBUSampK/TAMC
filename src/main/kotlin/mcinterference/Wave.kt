@@ -28,8 +28,8 @@ data class Wave (
  * @property[wavelength] Wavelength of waves used in calculations
  * @property[maxCache] maximum cache (number of points) for each continuous object
  */
-class FresnelIntegration (
-    private val wavelength: Double = 720.0,
+class Integration (
+    private val wavelength: Double = 720E-9,
     val maxCache: Int = 1_000_000_000
 ) {
 
@@ -55,19 +55,6 @@ class FresnelIntegration (
     }
 
     /**
-     * Calculate wave's amplitude multiplied by an inclination factor
-     *
-     * @property[target] Coordinate of the target point
-     * @return Amplitude at the point times inclination factor
-     */
-    fun Wave.fresnel(target: DoubleVector3D): Complex = ComplexField {
-        amplitude(target) * Euclidean3DSpace {
-            val delta = (target - coordinate)
-            delta.dot(vector(.0, .0, 1.0)) / delta.norm()
-        }
-    }
-
-    /**
      * Fresnel MC integral function for a continuous emitter source
      *
      * @param[source] The source of the wavefront
@@ -75,13 +62,13 @@ class FresnelIntegration (
      * @param[accuracy] Desired number of points for MC integration (redundant for PointEmitter source)
      * @return Complex amplitude of the E field at [position]
      */
-    suspend fun fresnelIntegral(source: Emitter, position: DoubleVector3D, accuracy: Int = 1) : Complex = when(source){
+    suspend fun integral(source: Emitter, position: DoubleVector3D, accuracy: Int = 1) : Complex = when(source){
         is ContinuousEmitter -> ComplexField {
             source.request(accuracy)
             -i / wavelength * source.sampler.measure / accuracy *
                     source.waves
                         .take(accuracy)
-                        .map { it.fresnel(position) }
+                        .map { it.amplitude(position) }
                         .reduce{ a, b -> a + b }
         }
         is PointEmitter -> ComplexField {

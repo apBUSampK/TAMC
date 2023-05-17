@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
-fun createPng(data: List<List<Double>>, name: String, h: Float = 0F, s: Float = 0F) : Unit {
+fun createPng(data: List<List<Double>>, name: String, h: Float = 0F, s: Float = 0F) {
     val width = data.size
     val height = data[0].size
     val pixels = data.flatten()

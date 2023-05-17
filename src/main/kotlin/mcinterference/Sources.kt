@@ -19,7 +19,7 @@ class ContinuousSource (
     private val amplitude: (DoubleVector2D) -> Complex,
     override val sampler: MeasuredSampler<DoubleVector2D>,
     generator: RandomGenerator,
-    context: FresnelIntegration
+    context: Integration
 ): ContinuousEmitter {
     private val _waves = MutableSharedFlow<Wave>(context.maxCache, onBufferOverflow = BufferOverflow.DROP_LATEST)
     override val waves = _waves.asSharedFlow()
@@ -52,6 +52,6 @@ class ContinuousSource (
  *
  * @property[wave] A wave object, representing the point source
  */
-class Source(
+class PointSource(
     override val wave: Wave
 ): PointEmitter
