@@ -32,7 +32,7 @@ data class Wave (
  * @property[wavelength] Wavelength of waves used in calculations
  * @property[maxCache] maximum cache (number of points) for each continuous object
  */
-class Integration (
+class FresnelIntegration (
     private val wavelength: Double = 720E-9,
     val maxCache: Int = 1_000_000_000,
     private val threads: Int = 1
@@ -62,6 +62,19 @@ class Integration (
     }
 
     /**
+     * Calculate wave's amplitude multiplied by an inclination factor
+     *
+     * @property[target] Coordinate of the target point
+     * @return Amplitude at the point times inclination factor
+     */
+    fun Wave.fresnel(target: DoubleVector3D): Complex = ComplexField {
+        amplitude(target) * Euclidean3DSpace {
+            val delta = (target - coordinate)
+            delta.dot(vector(.0, .0, 1.0)) / delta.norm()
+        }
+    }
+
+    /**
      * Fresnel MC integral function for a continuous emitter source
      *
      * @param[source] The source of the wavefront
@@ -69,14 +82,14 @@ class Integration (
      * @param[accuracy] Desired number of points for MC integration (redundant for PointEmitter source)
      * @return Complex amplitude of the E field at [position]
      */
-    suspend fun integral(source: Emitter, position: DoubleVector3D, accuracy: Int = 1) : Complex = when(source){
+    suspend fun fresnelIntegral(source: Emitter, position: DoubleVector3D, accuracy: Int = 1) : Complex = when(source){
         is ContinuousEmitter -> ComplexField {
             val batchSize = accuracy / threads
             val lastBatch = batchSize + accuracy - batchSize * threads
             val flows = List(threads) { thread ->
                         source.waves
                             .take(if(thread != threads - 1) batchSize else lastBatch)
-                            .map { it.amplitude(position) / source.sampler.density}
+                            .map { it.fresnel(position) / source.sampler.density}
             }
             val data = flows.map {
                     CoroutineScope(coroutineContext).async {

@@ -9,10 +9,10 @@ import space.kscience.kmath.random.RandomGenerator
 fun main(args: Array<String>) {
         val width = 100
         val height = 100
-        val context = Integration(720E-9, threads = 4)
-        val pointSource = PointSource(Wave(Euclidean3DSpace.vector(.0, .0, .0), Complex(100)))
+        val context = FresnelIntegration(720E-9, threads = 4)
+        val source = PointSource(Wave(Euclidean3DSpace.vector(.0, .0, .0), Complex(100)))
         val slm = SLM(
-                pointSource,
+                source,
                 10.0,
                 RectangleSampler(.00002, .00002),
                 { Complex(1) },

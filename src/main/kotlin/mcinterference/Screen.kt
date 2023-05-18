@@ -23,12 +23,12 @@ class Screen (
     private val ny: Int
 ) {
     /**
-     * A function for calculating amplitude at every point of the screene
+     * A function for calculating amplitude at every point of the screen
      *
      * @param[accuracy] Desired number of calculated points for MC integration
      * @return Matrix of amplitudes
      */
-    suspend fun draw(accuracy: Int, context: Integration): List<List<Double>> = ComplexField.run {
+    suspend fun draw(accuracy: Int, context: FresnelIntegration): List<List<Double>> = ComplexField.run {
         when(source) {
             is ContinuousEmitter -> source.request(accuracy)
             is PointEmitter -> Unit
@@ -36,7 +36,7 @@ class Screen (
         List(nx) { rNum: Int ->
             List(ny) {
                 power(
-                    norm(context.integral(
+                    norm(context.fresnelIntegral(
                         source,
                         Euclidean3DSpace.vector(position.x + rNum * dx, position.y + it * dy, position.z),
                         accuracy
