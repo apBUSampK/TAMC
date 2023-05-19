@@ -3,6 +3,7 @@ package mcinterference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.reduce
 import kotlinx.coroutines.flow.take
@@ -86,10 +87,11 @@ class FresnelIntegration (
         is ContinuousEmitter -> ComplexField {
             val batchSize = accuracy / threads
             val lastBatch = batchSize + accuracy - batchSize * threads
+            val masterFlow = source.waves.take(accuracy)
             val flows = List(threads) { thread ->
-                        source.waves
-                            .take(if(thread != threads - 1) batchSize else lastBatch)
-                            .map { it.fresnel(position) / source.sampler.density}
+                masterFlow.drop(thread * batchSize)
+                    .take(if (thread != threads - 1) batchSize else lastBatch)
+                    .map { it.fresnel(position) / source.sampler.density }
             }
             val data = flows.map {
                     CoroutineScope(coroutineContext).async {

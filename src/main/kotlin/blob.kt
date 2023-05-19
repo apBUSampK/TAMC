@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
         )
         val screen = Screen(slm, Euclidean3DSpace.vector(-.5, -.5, 5), .01, .01, width, height)
         val data = runBlocking(Dispatchers.Default) {
-                screen.draw(100000, context)
+                screen.draw(10000, context)
         }
         createPng(data, "test")
 }

@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
         val slm = SLM(
                 null,
                 10.0,
-                RectangleSampler(.0001, .0001),
+                RectangleSampler(.01, .01),
                 { Complex((1 + cos((2 * PI / 2E-5 * it.x))) / 2) },
                 RandomGenerator.default(1),
                 context
