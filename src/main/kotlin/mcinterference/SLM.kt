@@ -21,7 +21,7 @@ import space.kscience.kmath.random.RandomGenerator
  * @property[waves] A hot stream of samples for integration
  */
 class SLM(
-    private val source: Emitter,
+    private val source: Emitter?,
     private val distance: Double,
     override val sampler: MeasuredSampler<DoubleVector2D>,
     private val modulation: (DoubleVector2D) -> Complex,
@@ -39,6 +39,15 @@ class SLM(
      * @return Wave object, representing the wave, emitted by the point
      */
     suspend fun getWave(point: DoubleVector2D, accuracy: Int): Wave {
+
+        if (source == null) {
+            return Wave(Euclidean3DSpace.vector(
+                point.x,
+                point.y,
+                0.0
+            ), modulation(point))
+        }
+
         when(source) {
             is ContinuousEmitter -> source.request(accuracy)
             else -> Unit
