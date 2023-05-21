@@ -91,13 +91,13 @@ class FresnelIntegration (
             val flows = List(threads) { thread ->
                 masterFlow.drop(thread * batchSize)
                     .take(if (thread != threads - 1) batchSize else lastBatch)
-                    .map { it.fresnel(position) / source.sampler.density }
+                    .map { it.fresnel(position) }
             }
             val data = flows.map {
                     CoroutineScope(coroutineContext).async {
                         it.reduce { a, b -> a + b } }
             }
-            return data.awaitAll().reduce{ a, b -> a + b } / accuracy
+            return data.awaitAll().reduce{ a, b -> a + b } / accuracy / source.sampler.density
         }
         is PointEmitter -> ComplexField {
             source.wave.amplitude(position)
