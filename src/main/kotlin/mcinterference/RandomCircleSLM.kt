@@ -17,14 +17,17 @@ class RandomCTr(
     private val drC: Double,
     private val count: Int,
     sampler: MeasuredSampler<DoubleVector2D>,
-    private val generator: RandomGenerator
+    private val generator: RandomGenerator,
+    overlap: Boolean = false
 ) {
     private val sample = sampler.sample(generator)
     private val circles: List<Pair<DoubleVector2D, Double>> = runBlocking {
         Euclidean2DSpace.run {
             buildList {
                 for (i in 0 until count) {
-                    do {
+                    if (overlap)
+                        add(Pair(sample.next(), rC + drC * (generator.nextDouble() - .5)))
+                    else do {
                         var success = true
                         val circle = Pair(sample.next(), rC + drC * (generator.nextDouble() - .5))
                         for (oldCircle in this)
