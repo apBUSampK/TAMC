@@ -35,7 +35,7 @@ class RectangleSampler(
     private val rotation: Double = .0
 ) : MeasuredSampler<DoubleVector2D> {
     override val density: Double
-        get() = dx * dy
+        get() = 1 / dx / dy
 
     override fun sample(generator: RandomGenerator): Chain<DoubleVector2D> {
         return SimpleChain {
@@ -57,7 +57,7 @@ class CircleSampler(
     private val offset: DoubleVector2D = Euclidean2DSpace.vector(.0, .0)
 ) : MeasuredSampler<DoubleVector2D> {
     override val density: Double
-        get() = 2 * PI * r
+        get() = 1 / PI / r / r
 
     override fun sample(generator: RandomGenerator): Chain<DoubleVector2D> {
         return SimpleChain {

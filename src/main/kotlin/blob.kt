@@ -5,23 +5,28 @@ import mcinterference.*
 import space.kscience.kmath.complex.Complex
 import space.kscience.kmath.geometry.Euclidean3DSpace
 import space.kscience.kmath.random.RandomGenerator
+import kotlin.math.sqrt
+import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) {
         val width = 100
         val height = 100
         val context = FresnelIntegration(720E-9, threads = 4)
-        val source = PointSource(Wave(Euclidean3DSpace.vector(.0, .0, .0), Complex(100)))
-        val slm = SLM(
-                source,
+        val sampler = CircleSampler(8e-4)
+        val rslm = SLM(
+                null,
                 10.0,
-                RectangleSampler(.00002, .00002),
-                { Complex(1) },
-                RandomGenerator.default(1),
+                sampler,
+                { Complex(1) },//RandomCTr(7e-6, 5e-7, 90, sampler, RandomGenerator.default(1), true)::modulation,
+                RandomGenerator.default(2),
                 context
         )
-        val screen = Screen(slm, Euclidean3DSpace.vector(-.5, -.5, 5), .01, .01, width, height)
-        val data = runBlocking(Dispatchers.Default) {
-                screen.draw(10000, context)
-        }
-        createPng(data, "test")
+        val screen = Screen(rslm, Euclidean3DSpace.vector(-.005, -.005, 4.0/9), .0001, .0001, width, height)
+        println( measureTimeMillis {
+                val data = runBlocking(Dispatchers.Default) {
+                        screen.draw(10000, context)
+                }
+                createPng(data, "testfr2")
+                createPng(data, "testfr2_tr", transform = { sqrt(it) })
+        })
 }

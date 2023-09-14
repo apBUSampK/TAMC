@@ -39,7 +39,7 @@ class FresnelIntegration (
     private val threads: Int = 1
 ) {
     init{
-        if (threads < 1) throw IllegalArgumentException("Can't have less then one thread!")
+        if (threads < 1) throw IllegalArgumentException("Can't have less than one thread!")
     }
     /**
      * A function to rotate the complex number
@@ -71,7 +71,7 @@ class FresnelIntegration (
     fun Wave.fresnel(target: DoubleVector3D): Complex = ComplexField {
         amplitude(target) * Euclidean3DSpace {
             val delta = (target - coordinate)
-            delta.dot(vector(.0, .0, 1.0)) / delta.norm()
+            1 + delta.dot(vector(.0, .0, 1.0)) / delta.norm() / 2
         }
     }
 
@@ -97,7 +97,7 @@ class FresnelIntegration (
                     CoroutineScope(coroutineContext).async {
                         it.reduce { a, b -> a + b } }
             }
-            return data.awaitAll().reduce{ a, b -> a + b } / accuracy / source.sampler.density
+            return data.awaitAll().reduce{ a, b -> a + b } / accuracy / source.sampler.density / i / wavelength
         }
         is PointEmitter -> ComplexField {
             source.wave.amplitude(position)
